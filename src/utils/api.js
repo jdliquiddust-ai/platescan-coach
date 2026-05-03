@@ -1,15 +1,20 @@
-const BASE = import.meta.env.VITE_API_URL || '';
-const CLAUDE = `${BASE}/api/claude`;
+const ANTHROPIC = 'https://api.anthropic.com/v1/messages';
 const MODEL = 'claude-sonnet-4-20250514';
+const KEY = import.meta.env.VITE_ANTHROPIC_KEY;
 
 async function callClaude(messages, max_tokens = 1024) {
-  const res = await fetch(CLAUDE, {
+  const res = await fetch(ANTHROPIC, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': KEY,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true',
+    },
     body: JSON.stringify({ model: MODEL, max_tokens, messages }),
   });
   const data = await res.json();
-  if (!res.ok) throw new Error(data.error || 'Claude API error');
+  if (!res.ok) throw new Error(data.error?.message || 'Claude API error');
   return data.content[0].text;
 }
 

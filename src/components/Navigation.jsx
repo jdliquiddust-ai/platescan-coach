@@ -7,29 +7,26 @@ const tabs = [
 
 export default function Navigation({ current, onNavigate }) {
   return (
-    <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] z-50"
-      style={{ background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(20px)', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
-      <div className="flex items-center justify-around h-[72px] px-4 pb-safe">
+    <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] bg-white border-t border-gray-100 z-50"
+      style={{ boxShadow: '0 -4px 20px rgba(0,0,0,0.06)' }}>
+      <div className="flex items-center justify-around h-[68px] px-2">
         {tabs.map(({ id, label, icon: Icon }) => {
           const active = current === id;
           const isLog = id === 'log';
           return (
-            <button
-              key={id}
-              onClick={() => onNavigate(id)}
-              className="flex flex-col items-center gap-1 relative transition-all active:scale-90"
-            >
+            <button key={id} onClick={() => onNavigate(id)}
+              className="flex flex-col items-center gap-1 transition-all active:scale-90 relative">
               {isLog ? (
-                <div className="w-14 h-14 rounded-2xl flex items-center justify-center -mt-6 shadow-2xl"
-                  style={{ background: 'linear-gradient(135deg,#10b981,#059669)', boxShadow: '0 8px 32px rgba(16,185,129,0.4)' }}>
+                <div className="w-14 h-14 rounded-2xl flex items-center justify-center -mt-7 shadow-lg"
+                  style={{ background: 'linear-gradient(135deg,#22c55e,#16a34a)', boxShadow: '0 8px 24px rgba(34,197,94,0.35)' }}>
                   <Icon size={24} />
                 </div>
               ) : (
                 <>
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${active ? 'bg-emerald-500/15' : ''}`}>
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${active ? 'bg-green-50' : ''}`}>
                     <Icon size={20} active={active} />
                   </div>
-                  <span className={`text-[10px] font-medium transition-colors ${active ? 'text-emerald-400' : 'text-zinc-600'}`}>{label}</span>
+                  <span className={`text-[10px] font-medium ${active ? 'text-green-500' : 'text-gray-400'}`}>{label}</span>
                 </>
               )}
             </button>
@@ -42,8 +39,8 @@ export default function Navigation({ current, onNavigate }) {
 
 function HomeIcon({ size, active }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={active ? '#10b981' : '#52525b'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" /><polyline points="9 22 9 12 15 12 15 22" />
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={active ? '#22c55e' : '#9ca3af'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
     </svg>
   );
 }
@@ -57,15 +54,15 @@ function ScanIcon({ size }) {
 }
 function ClockIcon({ size, active }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={active ? '#10b981' : '#52525b'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={active ? '#22c55e' : '#9ca3af'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
     </svg>
   );
 }
 function UserIcon({ size, active }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={active ? '#10b981' : '#52525b'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" /><circle cx="12" cy="7" r="4" />
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={active ? '#22c55e' : '#9ca3af'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/>
     </svg>
   );
 }

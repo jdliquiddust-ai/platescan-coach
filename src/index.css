@@ -4,7 +4,7 @@
 
 @layer base {
   * { -webkit-tap-highlight-color: transparent; }
-  body { @apply bg-black text-white antialiased; }
+  body { @apply bg-gray-50 text-gray-900 antialiased; }
   input[type="number"]::-webkit-inner-spin-button,
   input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
 }

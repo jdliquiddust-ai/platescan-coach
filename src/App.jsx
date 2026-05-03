@@ -41,8 +41,8 @@ export default function App() {
 
   return (
     <UserContext.Provider value={username}>
-      <div className="flex justify-center bg-black min-h-screen">
-        <div className="w-full max-w-[430px] bg-black min-h-screen flex flex-col relative pb-20">
+      <div className="flex justify-center bg-gray-100 min-h-screen">
+        <div className="w-full max-w-[430px] bg-gray-50 min-h-screen flex flex-col relative pb-20">
           {page === 'dashboard' && <Dashboard onNavigate={setPage} />}
           {page === 'log'       && <LogMeal onBack={() => setPage('dashboard')} onDone={() => setPage('dashboard')} />}
           {page === 'history'   && <History />}
