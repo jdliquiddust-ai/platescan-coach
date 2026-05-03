@@ -90,7 +90,7 @@ export async function getCoachInsight(profile, meals, goals) {
 
   const text = await callClaude([{
     role: 'user',
-    content: `You are a direct, knowledgeable nutrition coach for ${profile.name || 'this person'} whose goal is to ${goalLabel}.
+    content: `You are a knowledgeable, caring nutrition coach for ${profile.name || 'this person'} (age ${profile.age || 'unknown'}), whose goal is to ${goalLabel}.
 
 Today's log (${timeOfDay}):
 ${mealLog}
@@ -100,7 +100,12 @@ Consumed:    ${consumed.calories} kcal | P:${consumed.protein}g C:${consumed.car
 Remaining:   ${rem.calories} kcal | P:${rem.protein}g C:${rem.carbs}g F:${rem.fat}g
 
 Return ONLY valid JSON, no markdown:
-{"insight":"exactly 2 sentences, personal and motivating, reference specific numbers","suggestions":["specific food + portion that helps hit remaining protein/macro target","second specific food + portion option"]}`,
-  }], 512);
+{
+  "insight": "2 sentences: mention what they ate well today AND what specific macro or calorie target needs attention, reference actual numbers",
+  "healthAnalysis": "1-2 sentences: explain if any logged meals were unhealthy (too much sugar, fat, sodium, processed food, etc.) and exactly why that's harmful for their goal and age",
+  "recovery": "1-2 sentences: concrete actionable advice on how to get back on track for the rest of today or tomorrow, specific to their remaining macros and goal",
+  "suggestions": ["specific food + portion that helps hit the biggest remaining macro gap", "second specific food + portion option"]
+}`,
+  }], 700);
   return parseJSON(text);
 }

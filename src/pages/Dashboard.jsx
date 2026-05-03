@@ -235,7 +235,7 @@ export default function Dashboard({ onNavigate }) {
             </button>
           </div>
           {coachError && <div className="bg-red-50 border border-red-100 rounded-2xl p-3 text-red-500 text-sm">{coachError}</div>}
-          {coach && !coachError && <CoachCard insight={coach.insight} suggestions={coach.suggestions} loading={coachLoading} />}
+          {coach && !coachError && <CoachCard insight={coach.insight} healthAnalysis={coach.healthAnalysis} recovery={coach.recovery} suggestions={coach.suggestions} loading={coachLoading} />}
           {coachLoading && !coach && <CoachCard loading />}
           {!coach && !coachLoading && !coachError && (
             <div className="bg-white border border-gray-100 border-dashed rounded-2xl p-5 text-center shadow-sm">

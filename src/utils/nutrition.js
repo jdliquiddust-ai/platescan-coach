@@ -23,20 +23,25 @@ export const calcTDEE = (profile) =>
 export const calcGoals = (profile) => {
   const tdee = calcTDEE(profile);
   const calories =
-    profile.goal === 'lose' ? Math.round(tdee * 0.8) :
+    profile.goal === 'lose'  ? Math.round(tdee * 0.8) :
     profile.goal === 'build' ? Math.round(tdee * 1.1) : tdee;
 
-  const [pRatio, cRatio, fRatio] =
-    profile.goal === 'lose'  ? [0.40, 0.30, 0.30] :
-    profile.goal === 'build' ? [0.35, 0.45, 0.20] :
-                               [0.30, 0.40, 0.30];
+  const age    = profile.age    || 25;
+  const weight = profile.weight || 70;
 
-  return {
-    calories,
-    protein: Math.round((calories * pRatio) / 4),
-    carbs:   Math.round((calories * cRatio) / 4),
-    fat:     Math.round((calories * fRatio) / 9),
-  };
+  // Weight-based protein targets, age-adjusted (g per kg)
+  const proteinPerKg =
+    age < 13 ? (profile.goal === 'build' ? 1.2 : profile.goal === 'lose' ? 1.1 : 0.95) :
+    age < 18 ? (profile.goal === 'build' ? 1.8 : profile.goal === 'lose' ? 1.5 : 1.2)  :
+               (profile.goal === 'build' ? 2.0 : profile.goal === 'lose' ? 1.6 : 1.4);
+
+  const protein     = Math.round(weight * proteinPerKg);
+  const remaining   = Math.max(0, calories - protein * 4);
+  const carbRatio   = profile.goal === 'build' ? 0.65 : 0.55;
+  const carbs       = Math.round((remaining * carbRatio) / 4);
+  const fat         = Math.round((remaining * (1 - carbRatio)) / 9);
+
+  return { calories, protein, carbs, fat };
 };
 
 export const sumMacros = (meals) =>
