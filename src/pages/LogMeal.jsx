@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import { motion } from 'framer-motion';
 import { analyzePhoto, analyzeText, lookupBarcode, getCoachInsight } from '../utils/api';
 import { addMealToToday, getProfile, getTodayLog, saveTodayLog, getFavorites, toggleFavorite, isFavorite } from '../utils/storage';
 import { MEAL_LABELS, MEAL_TYPES } from '../utils/nutrition';
@@ -120,39 +121,44 @@ export default function LogMeal({ onBack, onDone }) {
   };
 
   return (
-    <div className="flex-1 overflow-y-auto scrollbar-hide bg-gray-50">
+    <div className="flex-1 overflow-y-auto scrollbar-hide">
       {/* Header */}
-      <div className="bg-white flex items-center gap-3 px-5 pt-14 pb-4 border-b border-gray-100">
-        <button onClick={onBack} className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-gray-600">
+      <div className="glass flex items-center gap-3 px-5 pt-14 pb-4" style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+        <motion.button whileTap={{ scale: 0.88 }} onClick={onBack}
+          className="w-9 h-9 rounded-full flex items-center justify-center"
+          style={{ background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.7)' }}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
-        </button>
-        <h1 className="text-lg font-bold text-gray-900">Log Meal</h1>
+        </motion.button>
+        <h1 className="text-lg font-bold text-white">Log Meal</h1>
       </div>
 
       <div className="px-4 pb-10 pt-4 space-y-4">
         {/* Method tabs */}
-        <div className="flex gap-2 bg-white rounded-2xl p-1.5 shadow-sm border border-gray-100">
+        <div className="flex gap-2 glass rounded-2xl p-1.5 shadow-sm">
           {METHODS.map(m => (
-            <button key={m.id}
+            <motion.button key={m.id} whileTap={{ scale: 0.93 }}
               onClick={() => { setMethod(m.id); setResult(null); setError(''); setPhotoPreview(null); setPhotoData(null); }}
-              className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-semibold transition-all ${method === m.id ? 'bg-green-500 text-white shadow' : 'text-gray-400'}`}>
+              className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-semibold transition-all"
+              style={method === m.id
+                ? { background: 'linear-gradient(135deg,#9EFF00,#6abf00)', color: '#060d06' }
+                : { color: 'rgba(255,255,255,0.4)' }}>
               <span>{m.emoji}</span>{m.label}
-            </button>
+            </motion.button>
           ))}
         </div>
 
         {/* Favorites strip */}
         {!result && !saved && favorites.length > 0 && (
           <div>
-            <p className="text-gray-400 text-xs font-semibold uppercase tracking-widest mb-2.5 px-1">Quick Add</p>
+            <p style={{ color: 'rgba(255,255,255,0.4)' }} className="text-xs font-semibold uppercase tracking-widest mb-2.5 px-1">Quick Add</p>
             <div className="flex gap-3 overflow-x-auto scrollbar-hide -mx-1 px-1 pb-1">
               {favorites.map(fav => (
-                <button key={fav.favId} onClick={() => useFavorite(fav)}
-                  className="flex-shrink-0 bg-white border border-gray-100 rounded-2xl p-3 text-left w-36 active:scale-95 transition-transform shadow-sm">
+                <motion.button key={fav.favId} whileTap={{ scale: 0.93 }} onClick={() => useFavorite(fav)}
+                  className="flex-shrink-0 glass rounded-2xl p-3 text-left w-36 shadow-sm">
                   <div className="text-rose-400 text-xs mb-1.5 font-semibold">♥ Saved</div>
-                  <div className="text-gray-800 text-xs font-medium leading-tight line-clamp-2">{fav.items.map(i => i.name).join(', ')}</div>
-                  <div className="text-orange-500 text-xs mt-2 font-bold">{fav.totalCalories} kcal</div>
-                </button>
+                  <div className="text-white text-xs font-medium leading-tight line-clamp-2">{fav.items.map(i => i.name).join(', ')}</div>
+                  <div className="text-orange-400 text-xs mt-2 font-bold">{fav.totalCalories} kcal</div>
+                </motion.button>
               ))}
             </div>
           </div>
@@ -163,27 +169,43 @@ export default function LogMeal({ onBack, onDone }) {
           <div>
             <input ref={fileRef} type="file" accept="image/*" capture="environment" onChange={handlePhotoChange} className="hidden" />
             {!photoPreview ? (
-              <button onClick={() => fileRef.current?.click()}
-                className="w-full h-72 rounded-3xl bg-white border-2 border-dashed border-gray-200 flex flex-col items-center justify-center gap-4 active:scale-[0.98] transition-transform shadow-sm">
-                <div className="w-20 h-20 rounded-full bg-green-50 border-2 border-green-100 flex items-center justify-center">
-                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <motion.button whileTap={{ scale: 0.97 }} onClick={() => fileRef.current?.click()}
+                className="w-full h-72 rounded-3xl glass flex flex-col items-center justify-center gap-4 shadow-lg"
+                style={{ border: '2px dashed rgba(158,255,0,0.35)' }}>
+                <div className="w-20 h-20 rounded-full flex items-center justify-center"
+                  style={{ background: 'rgba(158,255,0,0.12)', border: '2px solid rgba(158,255,0,0.3)' }}>
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#9EFF00" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/>
                     <circle cx="12" cy="13" r="4"/>
                   </svg>
                 </div>
                 <div className="text-center">
-                  <p className="text-gray-900 font-bold text-base">Take a photo</p>
-                  <p className="text-gray-400 text-sm mt-0.5">Tap to open camera</p>
+                  <p className="text-white font-bold text-base">Take a photo</p>
+                  <p style={{ color: 'rgba(255,255,255,0.4)' }} className="text-sm mt-0.5">Tap to open camera</p>
                 </div>
-              </button>
+              </motion.button>
             ) : (
-              <div className="relative rounded-3xl overflow-hidden shadow-sm">
-                <img src={photoPreview} alt="Meal" className="w-full h-72 object-cover" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
-                <button onClick={() => { setPhotoPreview(null); setPhotoData(null); fileRef.current?.click(); }}
-                  className="absolute bottom-4 right-4 bg-white/90 text-gray-800 text-xs px-4 py-2 rounded-full font-semibold shadow">
+              <div className="relative rounded-3xl overflow-hidden shadow-xl" style={{ height: '288px' }}>
+                <img src={photoPreview} alt="Meal" className="w-full h-full object-cover" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                {/* Scan line */}
+                {loading && (
+                  <div className="absolute inset-0 overflow-hidden rounded-3xl">
+                    <div className="scan-line absolute left-0 right-0 h-0.5 z-10"
+                      style={{ background: 'linear-gradient(90deg,transparent,#9EFF00,transparent)', boxShadow: '0 0 12px 3px #9EFF00' }} />
+                  </div>
+                )}
+                {/* Corner brackets */}
+                <div className="absolute top-3 left-3 w-6 h-6 border-t-2 border-l-2 rounded-tl-lg" style={{ borderColor: '#9EFF00' }} />
+                <div className="absolute top-3 right-3 w-6 h-6 border-t-2 border-r-2 rounded-tr-lg" style={{ borderColor: '#9EFF00' }} />
+                <div className="absolute bottom-12 left-3 w-6 h-6 border-b-2 border-l-2 rounded-bl-lg" style={{ borderColor: '#9EFF00' }} />
+                <div className="absolute bottom-12 right-3 w-6 h-6 border-b-2 border-r-2 rounded-br-lg" style={{ borderColor: '#9EFF00' }} />
+                <motion.button whileTap={{ scale: 0.92 }}
+                  onClick={() => { setPhotoPreview(null); setPhotoData(null); fileRef.current?.click(); }}
+                  className="absolute bottom-4 right-4 text-xs px-4 py-2 rounded-full font-semibold"
+                  style={{ background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(8px)', color: 'white', border: '1px solid rgba(255,255,255,0.2)' }}>
                   Retake
-                </button>
+                </motion.button>
               </div>
             )}
           </div>
@@ -194,7 +216,8 @@ export default function LogMeal({ onBack, onDone }) {
           <textarea value={textInput} onChange={e => setTextInput(e.target.value)}
             placeholder="e.g. Two scrambled eggs, whole wheat toast, and orange juice…"
             rows={5}
-            className="w-full bg-white border border-gray-200 rounded-2xl px-4 py-4 text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:border-green-400 transition-colors resize-none shadow-sm" />
+            className="w-full glass rounded-2xl px-4 py-4 text-white text-sm focus:outline-none resize-none shadow-sm"
+            style={{ color: 'white', '::placeholder': { color: 'rgba(255,255,255,0.3)' } }} />
         )}
 
         {/* Barcode */}
@@ -202,59 +225,62 @@ export default function LogMeal({ onBack, onDone }) {
           <div>
             <input type="number" value={barcodeInput} onChange={e => setBarcodeInput(e.target.value)}
               placeholder="Enter barcode number…"
-              className="w-full bg-white border border-gray-200 rounded-2xl px-4 py-4 text-gray-900 text-base placeholder-gray-400 focus:outline-none focus:border-green-400 transition-colors shadow-sm" />
-            <p className="text-gray-400 text-xs mt-2 px-1">Enter the barcode from the product packaging</p>
+              className="w-full glass rounded-2xl px-4 py-4 text-white text-base focus:outline-none shadow-sm" />
+            <p style={{ color: 'rgba(255,255,255,0.35)' }} className="text-xs mt-2 px-1">Enter the barcode from the product packaging</p>
           </div>
         )}
 
         {/* Analyze button */}
         {!result && !saved && (
-          <button onClick={analyze} disabled={loading}
-            className="w-full py-4 rounded-2xl font-bold text-base text-white transition-all active:scale-[0.98] disabled:opacity-50"
-            style={{ background: 'linear-gradient(135deg,#22c55e,#16a34a)', boxShadow: '0 8px 24px rgba(34,197,94,0.3)' }}>
+          <motion.button whileTap={{ scale: 0.95 }} onClick={analyze} disabled={loading}
+            className="w-full py-4 rounded-2xl font-bold text-base disabled:opacity-50"
+            style={{ background: 'linear-gradient(135deg,#9EFF00,#6abf00)', color: '#060d06', boxShadow: '0 8px 28px rgba(158,255,0,0.3)' }}>
             {loading ? (
               <span className="flex items-center justify-center gap-2">
-                <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-                Analyzing…
+                <span className="w-4 h-4 border-2 rounded-full animate-spin" style={{ borderColor: 'rgba(6,13,6,0.3)', borderTopColor: '#060d06' }} />
+                Architecting Nutritional Offset…
               </span>
-            ) : method === 'photo' ? '🔍 Analyze Photo' : method === 'text' ? '🔍 Parse Meal' : '🔍 Look Up Barcode'}
-          </button>
+            ) : method === 'photo' ? '⚡ Analyze Photo' : method === 'text' ? '⚡ Parse Meal' : '⚡ Look Up Barcode'}
+          </motion.button>
         )}
 
-        {error && <div className="bg-red-50 border border-red-100 rounded-2xl p-4 text-red-500 text-sm">{error}</div>}
+        {error && <div className="rounded-2xl p-4 text-sm" style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', color: '#f87171' }}>{error}</div>}
 
         {/* Result */}
         {result && !saved && (
-          <div className="space-y-4 animate-slide-up">
-            <div className="bg-white rounded-3xl overflow-hidden border border-gray-100 shadow-sm">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ type: 'spring', stiffness: 260, damping: 22 }}
+            className="space-y-4">
+            <div className="glass-strong rounded-3xl overflow-hidden shadow-xl">
               {photoPreview && <img src={photoPreview} alt="" className="w-full h-48 object-cover" />}
               <div className="p-4">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-gray-900 font-bold">Detected Items</h3>
-                  <button onClick={handleToggleFavResult}
-                    className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-xl border font-semibold transition-all active:scale-95"
-                    style={resultIsFav ? { borderColor: '#fda4af', color: '#f43f5e', background: '#fff1f2' } : { borderColor: '#e5e7eb', color: '#9ca3af', background: 'white' }}>
+                  <h3 className="text-white font-bold">Detected Items</h3>
+                  <motion.button whileTap={{ scale: 0.9 }} onClick={handleToggleFavResult}
+                    className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-xl font-semibold"
+                    style={resultIsFav
+                      ? { border: '1px solid rgba(244,63,94,0.4)', color: '#f43f5e', background: 'rgba(244,63,94,0.1)' }
+                      : { border: '1px solid rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.5)', background: 'rgba(255,255,255,0.05)' }}>
                     <HeartIcon filled={resultIsFav} size={12} />
                     {resultIsFav ? 'Saved' : 'Save'}
-                  </button>
+                  </motion.button>
                 </div>
                 <div className="space-y-2.5 mb-4">
                   {result.items.map((item, i) => (
                     <div key={i} className="flex items-center justify-between">
-                      <span className="text-gray-700 text-sm">{item.name}</span>
-                      <span className="text-orange-500 text-sm font-bold">{item.calories} kcal</span>
+                      <span style={{ color: 'rgba(255,255,255,0.8)' }} className="text-sm">{item.name}</span>
+                      <span className="text-orange-400 text-sm font-bold">{item.calories} kcal</span>
                     </div>
                   ))}
                 </div>
-                <div className="border-t border-gray-100 pt-4">
+                <div className="pt-4" style={{ borderTop: '1px solid rgba(255,255,255,0.08)' }}>
                   <div className="flex items-center justify-between mb-3">
-                    <span className="text-gray-900 font-bold">Total</span>
-                    <span className="text-orange-500 font-bold text-xl">{result.totalCalories} kcal</span>
+                    <span className="text-white font-bold">Total</span>
+                    <span className="text-orange-400 font-bold text-xl">{result.totalCalories} kcal</span>
                   </div>
                   <div className="grid grid-cols-3 gap-2">
-                    <MacroPill label="Protein" value={result.totalProtein} color="#ec4899" bg="#fdf2f8" />
-                    <MacroPill label="Carbs"   value={result.totalCarbs}   color="#3b82f6" bg="#eff6ff" />
-                    <MacroPill label="Fat"     value={result.totalFat}     color="#eab308" bg="#fefce8" />
+                    <MacroPill label="Protein" value={result.totalProtein} color="#ec4899" bg="rgba(236,72,153,0.12)" />
+                    <MacroPill label="Carbs"   value={result.totalCarbs}   color="#3b82f6" bg="rgba(59,130,246,0.12)" />
+                    <MacroPill label="Fat"     value={result.totalFat}     color="#eab308" bg="rgba(234,179,8,0.12)" />
                   </div>
                 </div>
               </div>
@@ -262,51 +288,59 @@ export default function LogMeal({ onBack, onDone }) {
 
             {/* Meal type */}
             <div>
-              <p className="text-gray-400 text-xs font-semibold uppercase tracking-widest mb-3 px-1">Meal Type</p>
+              <p style={{ color: 'rgba(255,255,255,0.4)' }} className="text-xs font-semibold uppercase tracking-widest mb-3 px-1">Meal Type</p>
               <div className="grid grid-cols-4 gap-2">
                 {MEAL_TYPES.map(t => {
                   const { emoji, label } = MEAL_LABELS[t];
+                  const active = mealType === t;
                   return (
-                    <button key={t} onClick={() => setMealType(t)}
-                      className={`flex flex-col items-center gap-1 py-3 rounded-2xl border-2 transition-all text-xs font-semibold ${mealType === t ? 'border-green-400 bg-green-50 text-green-600' : 'border-gray-100 bg-white text-gray-400'}`}>
+                    <motion.button key={t} whileTap={{ scale: 0.9 }} onClick={() => setMealType(t)}
+                      className="flex flex-col items-center gap-1 py-3 rounded-2xl text-xs font-semibold transition-all glass"
+                      style={active ? { border: '1px solid #9EFF00', color: '#9EFF00', background: 'rgba(158,255,0,0.1)' } : { color: 'rgba(255,255,255,0.4)' }}>
                       <span className="text-lg">{emoji}</span>{label}
-                    </button>
+                    </motion.button>
                   );
                 })}
               </div>
             </div>
 
             <div className="flex gap-3">
-              <button onClick={resetForm} className="flex-1 py-4 rounded-2xl border-2 border-gray-200 text-gray-500 font-semibold text-sm bg-white">Redo</button>
-              <button onClick={saveMeal}
-                className="flex-1 py-4 rounded-2xl font-bold text-sm text-white"
-                style={{ background: 'linear-gradient(135deg,#22c55e,#16a34a)', boxShadow: '0 8px 24px rgba(34,197,94,0.3)' }}>
+              <motion.button whileTap={{ scale: 0.95 }} onClick={resetForm}
+                className="flex-1 py-4 rounded-2xl font-semibold text-sm glass"
+                style={{ color: 'rgba(255,255,255,0.6)' }}>Redo</motion.button>
+              <motion.button whileTap={{ scale: 0.95 }} onClick={saveMeal}
+                className="flex-1 py-4 rounded-2xl font-bold text-sm"
+                style={{ background: 'linear-gradient(135deg,#9EFF00,#6abf00)', color: '#060d06', boxShadow: '0 8px 24px rgba(158,255,0,0.3)' }}>
                 Add to Log ✓
-              </button>
+              </motion.button>
             </div>
-          </div>
+          </motion.div>
         )}
 
         {/* Post-save */}
         {saved && (
-          <div className="space-y-4 animate-slide-up">
-            <div className="bg-green-50 border border-green-100 rounded-3xl p-6 text-center">
-              <div className="w-14 h-14 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-3">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2.5" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ type: 'spring', stiffness: 260, damping: 22 }}
+            className="space-y-4">
+            <div className="glass-strong rounded-3xl p-6 text-center shadow-xl" style={{ border: '1px solid rgba(158,255,0,0.2)' }}>
+              <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-3"
+                style={{ background: 'rgba(158,255,0,0.15)', border: '1px solid rgba(158,255,0,0.3)' }}>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#9EFF00" strokeWidth="2.5" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>
               </div>
-              <p className="text-gray-900 font-bold text-lg">Meal logged!</p>
-              <p className="text-gray-500 text-sm mt-1">{result.totalCalories} kcal · {MEAL_LABELS[mealType].label}</p>
+              <p className="text-white font-bold text-lg">Meal logged!</p>
+              <p style={{ color: 'rgba(255,255,255,0.5)' }} className="text-sm mt-1">{result.totalCalories} kcal · {MEAL_LABELS[mealType].label}</p>
             </div>
-            {(coachLoading || coach) && <CoachCard insight={coach?.insight} healthAnalysis={coach?.healthAnalysis} recovery={coach?.recovery} suggestions={coach?.suggestions} loading={coachLoading} />}
+            {(coachLoading || coach) && <CoachCard insight={coach?.insight} healthAnalysis={coach?.healthAnalysis} recovery={coach?.recovery} suggestions={coach?.suggestions} loading={coachLoading} dark />}
             <div className="flex gap-3">
-              <button onClick={resetForm} className="flex-1 py-4 rounded-2xl border-2 border-gray-200 text-gray-500 font-semibold text-sm bg-white">Log Another</button>
-              <button onClick={onDone}
-                className="flex-1 py-4 rounded-2xl font-bold text-sm text-white"
-                style={{ background: 'linear-gradient(135deg,#22c55e,#16a34a)', boxShadow: '0 8px 24px rgba(34,197,94,0.3)' }}>
+              <motion.button whileTap={{ scale: 0.95 }} onClick={resetForm}
+                className="flex-1 py-4 rounded-2xl font-semibold text-sm glass"
+                style={{ color: 'rgba(255,255,255,0.6)' }}>Log Another</motion.button>
+              <motion.button whileTap={{ scale: 0.95 }} onClick={onDone}
+                className="flex-1 py-4 rounded-2xl font-bold text-sm"
+                style={{ background: 'linear-gradient(135deg,#9EFF00,#6abf00)', color: '#060d06', boxShadow: '0 8px 24px rgba(158,255,0,0.3)' }}>
                 Done
-              </button>
+              </motion.button>
             </div>
-          </div>
+          </motion.div>
         )}
       </div>
     </div>
@@ -317,7 +351,7 @@ function MacroPill({ label, value, color, bg }) {
   return (
     <div className="rounded-2xl py-2.5 text-center" style={{ background: bg }}>
       <div className="font-bold text-sm" style={{ color }}>{value}g</div>
-      <div className="text-gray-500 text-xs mt-0.5">{label}</div>
+      <div style={{ color: 'rgba(255,255,255,0.5)' }} className="text-xs mt-0.5">{label}</div>
     </div>
   );
 }

@@ -1,8 +1,9 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import { motion } from 'framer-motion';
 import CircularProgress from '../components/CircularProgress';
 import CoachCard from '../components/CoachCard';
 import { useUser } from '../context/UserContext';
-import { getTodayLog, saveTodayLog, getProfile, isFavorite, toggleFavorite } from '../utils/storage';
+import { getTodayLog, saveTodayLog, getProfile, getAllDailyLogs, isFavorite, toggleFavorite } from '../utils/storage';
 import { sumMacros, MEAL_LABELS, getGreeting, MEAL_TYPES } from '../utils/nutrition';
 import { getCoachInsight } from '../utils/api';
 
@@ -12,6 +13,11 @@ const MACRO_CONFIG = [
   { key: 'carbs',    label: 'Carbs',    unit: 'g',    color: '#3b82f6' },
   { key: 'fat',      label: 'Fat',      unit: 'g',    color: '#eab308' },
 ];
+
+const cardVariants = {
+  hidden: { opacity: 0, y: 18 },
+  visible: (i) => ({ opacity: 1, y: 0, transition: { delay: i * 0.07, type: 'spring', stiffness: 260, damping: 22 } }),
+};
 
 export default function Dashboard({ onNavigate }) {
   const username = useUser();
@@ -28,6 +34,18 @@ export default function Dashboard({ onNavigate }) {
   const consumed = sumMacros(log.meals || []);
   const calPct = Math.min(100, Math.round((consumed.calories / goals.calories) * 100));
   const today = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+
+  const allLogs = getAllDailyLogs(username);
+  const streak = useMemo(() => {
+    let count = 0;
+    const now = new Date();
+    for (let i = 0; i < 365; i++) {
+      const d = new Date(now); d.setDate(now.getDate() - i);
+      const key = d.toISOString().split('T')[0];
+      if (allLogs[key]?.meals?.length) count++; else if (i > 0) break;
+    }
+    return count;
+  }, [allLogs]);
 
   const refreshLog = useCallback(() => {
     const fresh = getTodayLog(username);
@@ -61,93 +79,108 @@ export default function Dashboard({ onNavigate }) {
   }, {});
 
   return (
-    <div className="flex-1 overflow-y-auto scrollbar-hide bg-gray-50">
+    <div className="flex-1 overflow-y-auto scrollbar-hide">
       {/* Header */}
-      <div className="bg-white px-5 pt-14 pb-5 border-b border-gray-100">
+      <div className="px-5 pt-14 pb-5 glass" style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-gray-400 text-sm">{getGreeting()}</p>
-            <h1 className="text-2xl font-bold text-gray-900 mt-0.5">{profile?.name || username} 👋</h1>
+            <p style={{ color: 'rgba(255,255,255,0.5)' }} className="text-sm">{getGreeting()}</p>
+            <h1 className="text-2xl font-bold text-white mt-0.5">{profile?.name || username} 👋</h1>
           </div>
-          <div className="w-11 h-11 rounded-full flex items-center justify-center text-white font-bold text-lg shadow"
-            style={{ background: 'linear-gradient(135deg,#22c55e,#16a34a)' }}>
-            {(profile?.name || username)[0].toUpperCase()}
+          <div className="flex items-center gap-3">
+            {streak > 0 && (
+              <motion.div whileTap={{ scale: 0.9 }} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full"
+                style={{ background: 'rgba(255,165,0,0.15)', border: '1px solid rgba(255,165,0,0.3)' }}>
+                <span className="text-base">🔥</span>
+                <span className="text-orange-400 font-bold text-sm">{streak}</span>
+              </motion.div>
+            )}
+            <div className="w-11 h-11 rounded-full flex items-center justify-center font-bold text-lg"
+              style={{ background: 'linear-gradient(135deg,#9EFF00,#6abf00)', color: '#060d06' }}>
+              {(profile?.name || username)[0].toUpperCase()}
+            </div>
           </div>
         </div>
-        <p className="text-gray-400 text-xs mt-1">{today}</p>
+        <p style={{ color: 'rgba(255,255,255,0.35)' }} className="text-xs mt-1">{today}</p>
       </div>
 
       <div className="px-4 space-y-4 pt-4 pb-8">
         {/* Calorie hero */}
-        <div className="bg-white rounded-3xl p-5 shadow-sm border border-gray-100">
+        <motion.div custom={0} variants={cardVariants} initial="hidden" animate="visible"
+          className="glass-strong rounded-3xl p-5 shadow-xl">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <p className="text-gray-400 text-xs font-medium uppercase tracking-widest mb-1">Calories</p>
+              <p style={{ color: 'rgba(255,255,255,0.45)' }} className="text-xs font-medium uppercase tracking-widest mb-1">Calories</p>
               <div className="flex items-baseline gap-1.5">
-                <span className="text-5xl font-bold text-gray-900">{consumed.calories}</span>
-                <span className="text-gray-400 text-sm font-medium">/ {goals.calories}</span>
+                <span className="text-5xl font-bold text-white">{consumed.calories}</span>
+                <span style={{ color: 'rgba(255,255,255,0.4)' }} className="text-sm font-medium">/ {goals.calories}</span>
               </div>
             </div>
             <div className="text-right">
-              <div className="text-2xl font-bold text-green-500">{Math.max(0, goals.calories - consumed.calories)}</div>
-              <div className="text-gray-400 text-xs">remaining</div>
+              <div className="text-2xl font-bold" style={{ color: '#9EFF00' }}>{Math.max(0, goals.calories - consumed.calories)}</div>
+              <div style={{ color: 'rgba(255,255,255,0.4)' }} className="text-xs">remaining</div>
             </div>
           </div>
-          <div className="w-full h-3 bg-gray-100 rounded-full overflow-hidden">
-            <div className="h-full rounded-full transition-all duration-500"
-              style={{
-                width: `${calPct}%`,
-                background: consumed.calories > goals.calories ? '#ef4444' : 'linear-gradient(90deg,#22c55e,#16a34a)',
-              }} />
+          <div className="w-full h-3 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.1)' }}>
+            <motion.div className="h-full rounded-full"
+              initial={{ width: 0 }}
+              animate={{ width: `${calPct}%` }}
+              transition={{ type: 'spring', stiffness: 80, damping: 20 }}
+              style={{ background: consumed.calories > goals.calories ? '#ef4444' : 'linear-gradient(90deg,#9EFF00,#6abf00)' }} />
           </div>
-          <p className="text-gray-400 text-xs mt-2">{calPct}% of daily goal</p>
-
-          {/* Macro strip */}
-          <div className="grid grid-cols-3 gap-2 mt-4 pt-4 border-t border-gray-100">
+          <p style={{ color: 'rgba(255,255,255,0.35)' }} className="text-xs mt-2">{calPct}% of daily goal</p>
+          <div className="grid grid-cols-3 gap-2 mt-4 pt-4" style={{ borderTop: '1px solid rgba(255,255,255,0.08)' }}>
             {[
-              { label: 'Protein', key: 'protein', color: '#ec4899', bg: '#fdf2f8' },
-              { label: 'Carbs',   key: 'carbs',   color: '#3b82f6', bg: '#eff6ff' },
-              { label: 'Fat',     key: 'fat',      color: '#eab308', bg: '#fefce8' },
+              { label: 'Protein', key: 'protein', color: '#ec4899', bg: 'rgba(236,72,153,0.12)' },
+              { label: 'Carbs',   key: 'carbs',   color: '#3b82f6', bg: 'rgba(59,130,246,0.12)' },
+              { label: 'Fat',     key: 'fat',     color: '#eab308', bg: 'rgba(234,179,8,0.12)' },
             ].map(m => (
               <div key={m.key} className="rounded-2xl py-3 text-center" style={{ background: m.bg }}>
                 <div className="font-bold text-base" style={{ color: m.color }}>{consumed[m.key]}g</div>
-                <div className="text-gray-400 text-xs mt-0.5">{m.label}</div>
+                <div style={{ color: 'rgba(255,255,255,0.4)' }} className="text-xs mt-0.5">{m.label}</div>
               </div>
             ))}
           </div>
-        </div>
+        </motion.div>
 
         {/* Macro rings */}
-        <div className="bg-white rounded-3xl p-5 shadow-sm border border-gray-100">
-          <p className="text-gray-400 text-xs font-semibold uppercase tracking-widest mb-4">Progress</p>
+        <motion.div custom={1} variants={cardVariants} initial="hidden" animate="visible"
+          className="glass rounded-3xl p-5 shadow-lg">
+          <p style={{ color: 'rgba(255,255,255,0.45)' }} className="text-xs font-semibold uppercase tracking-widest mb-4">Progress</p>
           <div className="grid grid-cols-4 gap-1">
             {MACRO_CONFIG.map(m => (
-              <CircularProgress key={m.key} value={consumed[m.key]} goal={goals[m.key]} label={m.label} unit={m.unit} color={m.color} size={76} />
+              <CircularProgress key={m.key} value={consumed[m.key]} goal={goals[m.key]} label={m.label} unit={m.unit} color={m.color} size={76} dark />
             ))}
           </div>
-        </div>
+        </motion.div>
 
         {/* Log CTA */}
         {!log.meals?.length && (
-          <button onClick={() => onNavigate('log')}
-            className="w-full py-5 rounded-3xl bg-white border-2 border-dashed border-gray-200 flex items-center justify-center gap-3 active:scale-[0.98] transition-transform shadow-sm">
+          <motion.button custom={2} variants={cardVariants} initial="hidden" animate="visible"
+            whileTap={{ scale: 0.97 }} onClick={() => onNavigate('log')}
+            className="w-full py-5 rounded-3xl glass flex items-center justify-center gap-3 shadow-lg"
+            style={{ border: '2px dashed rgba(158,255,0,0.3)' }}>
             <div className="w-10 h-10 rounded-2xl flex items-center justify-center"
-              style={{ background: 'linear-gradient(135deg,#22c55e,#16a34a)' }}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              style={{ background: 'linear-gradient(135deg,#9EFF00,#6abf00)' }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#060d06" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             </div>
             <div className="text-left">
-              <p className="text-gray-900 font-semibold text-sm">Log your first meal</p>
-              <p className="text-gray-400 text-xs">Snap a photo to get started</p>
+              <p className="text-white font-semibold text-sm">Log your first meal</p>
+              <p style={{ color: 'rgba(255,255,255,0.4)' }} className="text-xs">Snap a photo to get started</p>
             </div>
-          </button>
+          </motion.button>
         )}
 
         {/* Meals */}
         {log.meals?.length > 0 && (
-          <div>
+          <motion.div custom={2} variants={cardVariants} initial="hidden" animate="visible">
             <div className="flex items-center justify-between mb-3 px-1">
-              <h2 className="text-gray-900 font-bold">Today's Meals</h2>
-              <button onClick={() => onNavigate('log')} className="text-green-500 text-sm font-semibold">+ Add</button>
+              <h2 className="text-white font-bold">Today's Meals</h2>
+              <motion.button whileTap={{ scale: 0.9 }} onClick={() => onNavigate('log')}
+                className="text-sm font-semibold px-3 py-1 rounded-full"
+                style={{ color: '#9EFF00', background: 'rgba(158,255,0,0.1)', border: '1px solid rgba(158,255,0,0.2)' }}>
+                + Add
+              </motion.button>
             </div>
             <div className="space-y-2.5">
               {MEAL_TYPES.map(type => {
@@ -156,13 +189,15 @@ export default function Dashboard({ onNavigate }) {
                 const { emoji, label } = MEAL_LABELS[type];
                 const typeMacros = sumMacros(meals);
                 return (
-                  <div key={type} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+                  <motion.div key={type} whileTap={{ scale: 0.98 }}
+                    className="glass rounded-2xl p-4 shadow-md">
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-2">
                         <span className="text-lg">{emoji}</span>
-                        <span className="text-gray-900 font-semibold text-sm">{label}</span>
+                        <span className="text-white font-semibold text-sm">{label}</span>
                       </div>
-                      <span className="text-orange-500 text-xs font-bold bg-orange-50 px-2 py-1 rounded-full">{typeMacros.calories} kcal</span>
+                      <span className="text-xs font-bold px-2 py-1 rounded-full"
+                        style={{ color: '#f97316', background: 'rgba(249,115,22,0.15)' }}>{typeMacros.calories} kcal</span>
                     </div>
                     <div className="space-y-2.5">
                       {meals.map((meal, idx) => {
@@ -170,79 +205,97 @@ export default function Dashboard({ onNavigate }) {
                         return (
                           <div key={idx} className="flex items-start justify-between gap-2">
                             <div className="flex-1 min-w-0">
-                              <div className="text-gray-800 text-sm truncate font-medium">{meal.items.map(i => i.name).join(', ')}</div>
+                              <div className="text-white text-sm truncate font-medium">{meal.items.map(i => i.name).join(', ')}</div>
                               <div className="flex gap-3 mt-0.5">
-                                <span className="text-pink-500 text-xs">{meal.totalProtein}g P</span>
-                                <span className="text-blue-500 text-xs">{meal.totalCarbs}g C</span>
-                                <span className="text-yellow-500 text-xs">{meal.totalFat}g F</span>
+                                <span style={{ color: '#ec4899' }} className="text-xs">{meal.totalProtein}g P</span>
+                                <span style={{ color: '#3b82f6' }} className="text-xs">{meal.totalCarbs}g C</span>
+                                <span style={{ color: '#eab308' }} className="text-xs">{meal.totalFat}g F</span>
                               </div>
                             </div>
-                            <button onClick={() => handleToggleFav(meal)} className="p-1 transition-transform active:scale-125 flex-shrink-0">
+                            <motion.button whileTap={{ scale: 1.3 }} onClick={() => handleToggleFav(meal)} className="p-1 flex-shrink-0">
                               <HeartIcon filled={faved} />
-                            </button>
+                            </motion.button>
                           </div>
                         );
                       })}
                     </div>
-                  </div>
+                  </motion.div>
                 );
               })}
             </div>
-          </div>
+          </motion.div>
         )}
 
         {/* Steps + Water */}
-        <div className="grid grid-cols-2 gap-3">
-          <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-            <div className="text-gray-400 text-xs font-medium mb-3">👟 Steps</div>
+        <motion.div custom={3} variants={cardVariants} initial="hidden" animate="visible"
+          className="grid grid-cols-2 gap-3">
+          <div className="glass rounded-2xl p-4 shadow-md">
+            <div style={{ color: 'rgba(255,255,255,0.5)' }} className="text-xs font-medium mb-3">👟 Steps</div>
             <div className="flex items-center gap-2 mb-3">
-              <button onClick={() => handleSteps(steps - 500)} className="w-8 h-8 rounded-xl bg-gray-100 text-gray-600 flex items-center justify-center font-bold text-sm">−</button>
+              <motion.button whileTap={{ scale: 0.88 }} onClick={() => handleSteps(steps - 500)}
+                className="w-8 h-8 rounded-xl flex items-center justify-center font-bold text-sm"
+                style={{ background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.7)' }}>−</motion.button>
               <input type="number" value={steps} onChange={e => handleSteps(Number(e.target.value))}
-                className="flex-1 bg-transparent text-gray-900 font-bold text-lg text-center focus:outline-none" />
-              <button onClick={() => handleSteps(steps + 500)} className="w-8 h-8 rounded-xl bg-gray-100 text-gray-600 flex items-center justify-center font-bold text-sm">+</button>
+                className="flex-1 bg-transparent text-white font-bold text-lg text-center focus:outline-none" />
+              <motion.button whileTap={{ scale: 0.88 }} onClick={() => handleSteps(steps + 500)}
+                className="w-8 h-8 rounded-xl flex items-center justify-center font-bold text-sm"
+                style={{ background: 'rgba(158,255,0,0.15)', color: '#9EFF00' }}>+</motion.button>
             </div>
-            <div className="w-full h-1.5 bg-gray-100 rounded-full">
-              <div className="h-full bg-green-400 rounded-full transition-all" style={{ width: `${Math.min(100, (steps / 10000) * 100)}%` }} />
+            <div className="w-full h-1.5 rounded-full" style={{ background: 'rgba(255,255,255,0.1)' }}>
+              <div className="h-full rounded-full transition-all" style={{ width: `${Math.min(100,(steps/10000)*100)}%`, background: '#9EFF00' }} />
             </div>
-            <div className="text-gray-400 text-xs mt-1.5">/ 10,000 goal</div>
+            <div style={{ color: 'rgba(255,255,255,0.35)' }} className="text-xs mt-1.5">/ 10,000 goal</div>
           </div>
 
-          <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-            <div className="text-gray-400 text-xs font-medium mb-3">💧 Water</div>
+          <div className="glass rounded-2xl p-4 shadow-md">
+            <div style={{ color: 'rgba(255,255,255,0.5)' }} className="text-xs font-medium mb-3">💧 Water</div>
             <div className="flex items-center justify-between mb-3">
-              <button onClick={() => handleWater(-1)} className="w-8 h-8 rounded-xl bg-gray-100 text-gray-600 flex items-center justify-center font-bold text-sm">−</button>
+              <motion.button whileTap={{ scale: 0.88 }} onClick={() => handleWater(-1)}
+                className="w-8 h-8 rounded-xl flex items-center justify-center font-bold text-sm"
+                style={{ background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.7)' }}>−</motion.button>
               <div className="text-center">
-                <div className="text-gray-900 font-bold text-xl">{water}</div>
-                <div className="text-gray-400 text-xs">/ 8 glasses</div>
+                <div className="text-white font-bold text-xl">{water}</div>
+                <div style={{ color: 'rgba(255,255,255,0.4)' }} className="text-xs">/ 8 glasses</div>
               </div>
-              <button onClick={() => handleWater(1)} className="w-8 h-8 rounded-xl bg-blue-50 text-blue-500 flex items-center justify-center font-bold text-sm">+</button>
+              <motion.button whileTap={{ scale: 0.88 }} onClick={() => handleWater(1)}
+                className="w-8 h-8 rounded-xl flex items-center justify-center font-bold text-sm"
+                style={{ background: 'rgba(59,130,246,0.2)', color: '#60a5fa' }}>+</motion.button>
             </div>
             <div className="flex gap-1">
               {Array.from({ length: 8 }).map((_, i) => (
-                <div key={i} className={`flex-1 h-1.5 rounded-full transition-all ${i < water ? 'bg-blue-400' : 'bg-gray-100'}`} />
+                <div key={i} className="flex-1 h-1.5 rounded-full transition-all"
+                  style={{ background: i < water ? '#60a5fa' : 'rgba(255,255,255,0.1)' }} />
               ))}
             </div>
           </div>
-        </div>
+        </motion.div>
 
         {/* AI Coach */}
-        <div>
+        <motion.div custom={4} variants={cardVariants} initial="hidden" animate="visible">
           <div className="flex items-center justify-between mb-3 px-1">
-            <h2 className="text-gray-900 font-bold">AI Coach</h2>
-            <button onClick={fetchCoach} disabled={coachLoading}
-              className="text-xs px-3 py-1.5 rounded-xl font-semibold disabled:opacity-50 text-green-600 bg-green-50 border border-green-100">
+            <h2 className="text-white font-bold">AI Coach</h2>
+            <motion.button whileTap={{ scale: 0.9 }} onClick={fetchCoach} disabled={coachLoading}
+              className="text-xs px-3 py-1.5 rounded-xl font-semibold disabled:opacity-50"
+              style={{ color: '#9EFF00', background: 'rgba(158,255,0,0.1)', border: '1px solid rgba(158,255,0,0.25)' }}>
               {coachLoading ? 'Thinking…' : 'Get Advice'}
-            </button>
+            </motion.button>
           </div>
-          {coachError && <div className="bg-red-50 border border-red-100 rounded-2xl p-3 text-red-500 text-sm">{coachError}</div>}
-          {coach && !coachError && <CoachCard insight={coach.insight} healthAnalysis={coach.healthAnalysis} recovery={coach.recovery} suggestions={coach.suggestions} loading={coachLoading} />}
-          {coachLoading && !coach && <CoachCard loading />}
+          {coachError && (
+            <div className="rounded-2xl p-3 text-sm" style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', color: '#f87171' }}>{coachError}</div>
+          )}
+          {coach && !coachError && <CoachCard insight={coach.insight} healthAnalysis={coach.healthAnalysis} recovery={coach.recovery} suggestions={coach.suggestions} loading={coachLoading} dark />}
+          {coachLoading && !coach && <CoachCard loading dark />}
           {!coach && !coachLoading && !coachError && (
-            <div className="bg-white border border-gray-100 border-dashed rounded-2xl p-5 text-center shadow-sm">
-              <p className="text-gray-400 text-sm">Log a meal then tap "Get Advice" for personalized coaching</p>
+            <div className="glass rounded-2xl p-5 text-center shadow-md">
+              <p style={{ color: 'rgba(255,255,255,0.4)' }} className="text-sm">Log a meal then tap "Get Advice" for personalized coaching</p>
             </div>
           )}
-        </div>
+        </motion.div>
+
+        {/* Footer */}
+        <p className="text-center text-xs mt-2" style={{ color: 'rgba(255,255,255,0.2)' }}>
+          Proprietary AI Engine v2.0 | Secured by JD's Vault
+        </p>
       </div>
     </div>
   );
@@ -250,7 +303,7 @@ export default function Dashboard({ onNavigate }) {
 
 function HeartIcon({ filled }) {
   return (
-    <svg width="17" height="17" viewBox="0 0 24 24" fill={filled ? '#f43f5e' : 'none'} stroke={filled ? '#f43f5e' : '#d1d5db'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="17" height="17" viewBox="0 0 24 24" fill={filled ? '#f43f5e' : 'none'} stroke={filled ? '#f43f5e' : 'rgba(255,255,255,0.3)'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
     </svg>
   );
