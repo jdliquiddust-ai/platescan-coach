@@ -1,5 +1,5 @@
 const ANTHROPIC = 'https://api.anthropic.com/v1/messages';
-const MODEL = 'claude-sonnet-4-20250514';
+const MODEL = 'claude-sonnet-4-5';
 const KEY = import.meta.env.VITE_ANTHROPIC_KEY;
 
 async function callClaude(messages, max_tokens = 1024) {
