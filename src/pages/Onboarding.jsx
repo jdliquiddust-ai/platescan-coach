@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { saveProfile, saveApiKey, setOnboarded } from '../utils/storage';
+import { saveProfile, setOnboarded } from '../utils/storage';
 import { useUser } from '../context/UserContext';
 import { calcGoals, kgToLbs, lbsToKg, cmToIn, inToCm } from '../utils/nutrition';
 
@@ -26,7 +26,6 @@ export default function Onboarding({ onComplete }) {
     name: '', age: '', gender: 'male',
     weight: '', height: '',
     goal: 'maintain', activityLevel: 'moderate',
-    apiKey: '',
   });
   const [weightUnit, setWeightUnit] = useState('kg');
   const [heightUnit, setHeightUnit] = useState('cm');
@@ -67,7 +66,6 @@ export default function Onboarding({ onComplete }) {
     };
     profile.goals = calcGoals(profile);
     saveProfile(username, profile);
-    if (data.apiKey) saveApiKey(username, data.apiKey);
     setOnboarded(username);
     onComplete();
   };
@@ -194,18 +192,6 @@ export default function Onboarding({ onComplete }) {
                     {data.activityLevel === a.id && <div className="w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center text-white text-xs">✓</div>}
                   </button>
                 ))}
-                <div className="mt-4 pt-4 border-t border-slate-800">
-                  <label className="block text-sm text-slate-400 mb-1.5">
-                    Anthropic API Key <span className="text-slate-600">(optional, add later in Settings)</span>
-                  </label>
-                  <input
-                    type="password"
-                    value={data.apiKey}
-                    onChange={e => set('apiKey', e.target.value)}
-                    placeholder="sk-ant-..."
-                    className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white text-sm placeholder-slate-500 focus:outline-none focus:border-emerald-500 transition-colors"
-                  />
-                </div>
               </div>
             </StepCard>
           )}

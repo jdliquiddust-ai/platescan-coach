@@ -23,11 +23,11 @@ if (existsSync(join(__dirname, '.env'))) {
 }
 
 app.post('/api/claude', async (req, res) => {
-  const { apiKey, ...body } = req.body;
-  const key = apiKey || process.env.ANTHROPIC_API_KEY;
+  const key = process.env.ANTHROPIC_API_KEY;
+  const body = req.body;
 
   if (!key) {
-    return res.status(400).json({ error: 'No API key. Add yours in Settings.' });
+    return res.status(500).json({ error: 'Server API key not configured.' });
   }
 
   try {

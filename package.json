@@ -2,11 +2,14 @@
   "name": "platescan-coach",
   "version": "1.0.0",
   "type": "module",
+  "homepage": "https://jdliquiddust-ai.github.io/platescan-coach",
   "scripts": {
     "dev": "concurrently \"node server.js\" \"vite\"",
     "build": "vite build",
     "start": "node server.js",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d dist"
   },
   "dependencies": {
     "cors": "^2.8.5",
@@ -18,6 +21,7 @@
     "@vitejs/plugin-react": "^4.2.0",
     "autoprefixer": "^10.4.16",
     "concurrently": "^8.2.2",
+    "gh-pages": "^6.3.0",
     "postcss": "^8.4.32",
     "tailwindcss": "^3.4.0",
     "vite": "^5.0.8"

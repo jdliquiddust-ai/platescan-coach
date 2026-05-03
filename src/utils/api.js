@@ -1,11 +1,11 @@
 const CLAUDE = '/api/claude';
 const MODEL = 'claude-sonnet-4-20250514';
 
-async function callClaude(apiKey, messages, max_tokens = 1024) {
+async function callClaude(messages, max_tokens = 1024) {
   const res = await fetch(CLAUDE, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ apiKey, model: MODEL, max_tokens, messages }),
+    body: JSON.stringify({ model: MODEL, max_tokens, messages }),
   });
   const data = await res.json();
   if (!res.ok) throw new Error(data.error || 'Claude API error');
@@ -13,13 +13,12 @@ async function callClaude(apiKey, messages, max_tokens = 1024) {
 }
 
 function parseJSON(text) {
-  // Strip markdown code fences if present
   const clean = text.replace(/```(?:json)?\n?/g, '').trim();
   return JSON.parse(clean);
 }
 
-export async function analyzePhoto(base64, mediaType, apiKey) {
-  const text = await callClaude(apiKey, [{
+export async function analyzePhoto(base64, mediaType) {
+  const text = await callClaude([{
     role: 'user',
     content: [
       { type: 'image', source: { type: 'base64', media_type: mediaType, data: base64 } },
@@ -34,8 +33,8 @@ Use realistic portion-size estimates. All values are numbers.`,
   return parseJSON(text);
 }
 
-export async function analyzeText(description, apiKey) {
-  const text = await callClaude(apiKey, [{
+export async function analyzeText(description) {
+  const text = await callClaude([{
     role: 'user',
     content: `Parse this meal description and return ONLY valid JSON, no markdown:
 {"items":[{"name":"item name","calories":0,"protein":0,"carbs":0,"fat":0}],"totalCalories":0,"totalProtein":0,"totalCarbs":0,"totalFat":0}
@@ -65,7 +64,7 @@ export async function lookupBarcode(barcode) {
   };
 }
 
-export async function getCoachInsight(profile, meals, goals, apiKey) {
+export async function getCoachInsight(profile, meals, goals) {
   const consumed = meals.reduce(
     (a, m) => ({ calories: a.calories + m.totalCalories, protein: a.protein + m.totalProtein, carbs: a.carbs + m.totalCarbs, fat: a.fat + m.totalFat }),
     { calories: 0, protein: 0, carbs: 0, fat: 0 }
@@ -84,7 +83,7 @@ export async function getCoachInsight(profile, meals, goals, apiKey) {
 
   const goalLabel = profile.goal === 'lose' ? 'lose weight' : profile.goal === 'build' ? 'build muscle' : 'maintain weight';
 
-  const text = await callClaude(apiKey, [{
+  const text = await callClaude([{
     role: 'user',
     content: `You are a direct, knowledgeable nutrition coach for ${profile.name || 'this person'} whose goal is to ${goalLabel}.
 
