@@ -8,7 +8,9 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-app.use(cors());
+app.use(cors({
+  origin: ['https://jdliquiddust-ai.github.io', 'http://localhost:5173'],
+}));
 app.use(express.json({ limit: '20mb' }));
 
 // Load .env manually (no dotenv dependency)
