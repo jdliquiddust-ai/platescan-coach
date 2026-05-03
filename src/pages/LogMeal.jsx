@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { analyzePhoto, analyzeText, lookupBarcode, getCoachInsight } from '../utils/api';
-import { addMealToToday, getProfile, getTodayLog, saveTodayLog, getFavorites, toggleFavorite, isFavorite } from '../utils/storage';
+import { addMealToToday, getProfile, getApiKey, getTodayLog, saveTodayLog, getFavorites, toggleFavorite, isFavorite } from '../utils/storage';
 import { MEAL_LABELS, MEAL_TYPES } from '../utils/nutrition';
 import { useUser } from '../context/UserContext';
 import CoachCard from '../components/CoachCard';
@@ -45,15 +45,17 @@ export default function LogMeal({ onBack, onDone }) {
   };
 
   const analyze = async () => {
+    const key = getApiKey(username);
+    if (!key && method !== 'barcode') { setError('Add your API key in Settings first.'); return; }
     setLoading(true); setError(''); setResult(null);
     try {
       let res;
       if (method === 'photo') {
         if (!photoData) { setError('Please take or select a photo first.'); setLoading(false); return; }
-        res = await analyzePhoto(photoData.base64, photoData.mediaType);
+        res = await analyzePhoto(photoData.base64, photoData.mediaType, key);
       } else if (method === 'text') {
         if (!textInput.trim()) { setError('Please describe your meal.'); setLoading(false); return; }
-        res = await analyzeText(textInput.trim());
+        res = await analyzeText(textInput.trim(), key);
       } else {
         if (!barcodeInput.trim()) { setError('Please enter a barcode number.'); setLoading(false); return; }
         res = await lookupBarcode(barcodeInput.trim());
@@ -89,11 +91,12 @@ export default function LogMeal({ onBack, onDone }) {
     setSaved(true);
 
     const profile = getProfile(username);
-    if (profile) {
+    const key = getApiKey(username);
+    if (profile && key) {
       setCoachLoading(true);
       try {
         const todayLog = getTodayLog(username);
-        const insight = await getCoachInsight(profile, todayLog.meals, profile.goals);
+        const insight = await getCoachInsight(profile, todayLog.meals, profile.goals, key);
         setCoach(insight);
         const updatedLog = getTodayLog(username);
         const last = updatedLog.meals[updatedLog.meals.length - 1];

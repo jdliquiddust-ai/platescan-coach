@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import CircularProgress from '../components/CircularProgress';
 import CoachCard from '../components/CoachCard';
 import { useUser } from '../context/UserContext';
-import { getTodayLog, saveTodayLog, getProfile, isFavorite, toggleFavorite } from '../utils/storage';
+import { getTodayLog, saveTodayLog, getProfile, getApiKey, isFavorite, toggleFavorite } from '../utils/storage';
 import { sumMacros, MEAL_LABELS, getGreeting, MEAL_TYPES } from '../utils/nutrition';
 import { getCoachInsight } from '../utils/api';
 
@@ -54,10 +54,12 @@ export default function Dashboard({ onNavigate }) {
   const handleToggleFav = (meal) => { toggleFavorite(username, meal); setFavTick(t => t + 1); };
 
   const fetchCoach = async () => {
+    const key = getApiKey(username);
+    if (!key) { setCoachError('Add your API key in Settings to use the coach.'); return; }
     if (!log.meals?.length) { setCoachError('Log a meal first to get coaching.'); return; }
     setCoachLoading(true); setCoachError('');
     try {
-      const result = await getCoachInsight(profile, log.meals, goals);
+      const result = await getCoachInsight(profile, log.meals, goals, key);
       setCoach(result);
     } catch (e) {
       setCoachError(e.message);

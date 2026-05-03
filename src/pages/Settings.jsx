@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { getProfile, saveProfile, clearUserData, logoutUser } from '../utils/storage';
+import { getProfile, saveProfile, getApiKey, saveApiKey, clearUserData, logoutUser } from '../utils/storage';
 import { useUser } from '../context/UserContext';
 import { calcGoals, kgToLbs, lbsToKg, cmToIn, inToCm } from '../utils/nutrition';
 
@@ -33,6 +33,8 @@ export default function Settings({ onLogout }) {
     const p = getProfile(username) || {};
     return p.height ? String(p.height) : '';
   });
+  const [apiKey, setApiKeyState] = useState(() => getApiKey(username) || '');
+  const [showKey, setShowKey] = useState(false);
   const [saved, setSaved] = useState(false);
   const [showReset, setShowReset] = useState(false);
 
@@ -62,6 +64,7 @@ export default function Settings({ onLogout }) {
     const updated = { ...profile, age: Number(profile.age), weight: weightKg, height: heightCm };
     updated.goals = calcGoals(updated);
     saveProfile(username, updated);
+    saveApiKey(username, apiKey);
     setProfile(updated);
     setSaved(true);
     setTimeout(() => setSaved(false), 2500);
@@ -155,6 +158,24 @@ export default function Settings({ onLogout }) {
             <GoalCard label="Fat"      value={goals.fat}      unit="g"    color="text-yellow-400" />
           </div>
           <p className="text-slate-600 text-xs text-center">Based on Mifflin-St Jeor formula. Auto-updates when you save.</p>
+        </Section>
+
+        {/* API Key */}
+        <Section title="Anthropic API Key">
+          <p className="text-slate-500 text-xs">Required for AI photo analysis and coaching.</p>
+          <div className="relative">
+            <input
+              type={showKey ? 'text' : 'password'}
+              value={apiKey}
+              onChange={e => setApiKeyState(e.target.value)}
+              placeholder="sk-ant-…"
+              className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white text-sm placeholder-slate-600 focus:outline-none focus:border-emerald-500 transition-colors pr-16"
+            />
+            <button onClick={() => setShowKey(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs">
+              {showKey ? 'Hide' : 'Show'}
+            </button>
+          </div>
+          <p className="text-slate-700 text-xs">Stored locally on this device only.</p>
         </Section>
 
         {/* Save */}

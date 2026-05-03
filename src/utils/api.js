@@ -1,14 +1,19 @@
-const CLAUDE = '/api/claude';
+const ANTHROPIC = 'https://api.anthropic.com/v1/messages';
 const MODEL = 'claude-sonnet-4-20250514';
 
-async function callClaude(messages, max_tokens = 1024) {
-  const res = await fetch(CLAUDE, {
+async function callClaude(apiKey, messages, max_tokens = 1024) {
+  const res = await fetch(ANTHROPIC, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true',
+    },
     body: JSON.stringify({ model: MODEL, max_tokens, messages }),
   });
   const data = await res.json();
-  if (!res.ok) throw new Error(data.error || 'Claude API error');
+  if (!res.ok) throw new Error(data.error?.message || 'Claude API error');
   return data.content[0].text;
 }
 
@@ -17,8 +22,8 @@ function parseJSON(text) {
   return JSON.parse(clean);
 }
 
-export async function analyzePhoto(base64, mediaType) {
-  const text = await callClaude([{
+export async function analyzePhoto(base64, mediaType, apiKey) {
+  const text = await callClaude(apiKey, [{
     role: 'user',
     content: [
       { type: 'image', source: { type: 'base64', media_type: mediaType, data: base64 } },
@@ -33,8 +38,8 @@ Use realistic portion-size estimates. All values are numbers.`,
   return parseJSON(text);
 }
 
-export async function analyzeText(description) {
-  const text = await callClaude([{
+export async function analyzeText(description, apiKey) {
+  const text = await callClaude(apiKey, [{
     role: 'user',
     content: `Parse this meal description and return ONLY valid JSON, no markdown:
 {"items":[{"name":"item name","calories":0,"protein":0,"carbs":0,"fat":0}],"totalCalories":0,"totalProtein":0,"totalCarbs":0,"totalFat":0}
@@ -64,7 +69,7 @@ export async function lookupBarcode(barcode) {
   };
 }
 
-export async function getCoachInsight(profile, meals, goals) {
+export async function getCoachInsight(profile, meals, goals, apiKey) {
   const consumed = meals.reduce(
     (a, m) => ({ calories: a.calories + m.totalCalories, protein: a.protein + m.totalProtein, carbs: a.carbs + m.totalCarbs, fat: a.fat + m.totalFat }),
     { calories: 0, protein: 0, carbs: 0, fat: 0 }
@@ -80,10 +85,9 @@ export async function getCoachInsight(profile, meals, goals) {
   const mealLog = meals.length
     ? meals.map(m => `${m.mealType}: ${m.items.map(i => i.name).join(', ')} (${m.totalCalories} kcal, ${m.totalProtein}g protein)`).join('\n')
     : 'No meals logged yet today.';
-
   const goalLabel = profile.goal === 'lose' ? 'lose weight' : profile.goal === 'build' ? 'build muscle' : 'maintain weight';
 
-  const text = await callClaude([{
+  const text = await callClaude(apiKey, [{
     role: 'user',
     content: `You are a direct, knowledgeable nutrition coach for ${profile.name || 'this person'} whose goal is to ${goalLabel}.
 
