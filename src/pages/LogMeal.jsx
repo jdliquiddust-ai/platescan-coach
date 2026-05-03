@@ -35,12 +35,22 @@ export default function LogMeal({ onBack, onDone }) {
   const handlePhotoChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      setPhotoPreview(reader.result);
-      setPhotoData({ base64: reader.result.split(',')[1], mediaType: file.type });
+    const img = new Image();
+    const objectUrl = URL.createObjectURL(file);
+    img.onload = () => {
+      const MAX = 1024;
+      const scale = Math.min(1, MAX / Math.max(img.width, img.height));
+      const w = Math.round(img.width * scale);
+      const h = Math.round(img.height * scale);
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+      setPhotoPreview(dataUrl);
+      setPhotoData({ base64: dataUrl.split(',')[1], mediaType: 'image/jpeg' });
+      URL.revokeObjectURL(objectUrl);
     };
-    reader.readAsDataURL(file);
+    img.src = objectUrl;
   };
 
   const analyze = async () => {
@@ -287,7 +297,7 @@ export default function LogMeal({ onBack, onDone }) {
               <p className="text-gray-900 font-bold text-lg">Meal logged!</p>
               <p className="text-gray-500 text-sm mt-1">{result.totalCalories} kcal · {MEAL_LABELS[mealType].label}</p>
             </div>
-            {(coachLoading || coach) && <CoachCard insight={coach?.insight} suggestions={coach?.suggestions} loading={coachLoading} />}
+            {(coachLoading || coach) && <CoachCard insight={coach?.insight} healthAnalysis={coach?.healthAnalysis} recovery={coach?.recovery} suggestions={coach?.suggestions} loading={coachLoading} />}
             <div className="flex gap-3">
               <button onClick={resetForm} className="flex-1 py-4 rounded-2xl border-2 border-gray-200 text-gray-500 font-semibold text-sm bg-white">Log Another</button>
               <button onClick={onDone}
